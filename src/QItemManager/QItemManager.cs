@@ -92,6 +92,8 @@ namespace QItemManager
                 Mouse.SetCursorPosAndLeftClick(item.GetClientRect().Center + gameWindowPos.TopLeft, Settings.ExtraDelay);
                 Thread.Sleep(latency + Settings.ExtraDelay);
             }
+
+            Keyboard.KeyUp(Keys.LControlKey);
         }
 
     }
