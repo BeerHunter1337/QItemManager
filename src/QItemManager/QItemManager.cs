@@ -94,34 +94,39 @@ namespace QItemManager
         public NormalInventoryItem[] ScanInventory<T>(Inventory inventory)
             where T : Component, new()
         {
-            var items = from invItem in inventory.VisibleInventoryItems
+            var items = (from invItem in inventory.VisibleInventoryItems
                         let item = invItem.Item
                         where item.HasComponent<T>()
                             && item.HasComponent<Quality>()
-                            && !(Settings.IgnoreHighlighted && item.GetComponent<Quality>().ItemQuality < Settings.HighlightQuality)
-                        select invItem;
+                            && !(Settings.IgnoreHighlighted && item.GetComponent<Quality>().ItemQuality >= Settings.HighlightQuality)
+                        select invItem).ToList();
 
-            var sum = 0;
+            while (items.Any()) {
+                var sum = 0;
 
-            var set = new List<NormalInventoryItem>();
-            foreach (var invItem in items)
-            {
-                var quality = invItem.Item.GetComponent<Quality>().ItemQuality;
-
-                if (sum + quality == 40 || sum + quality <= 35)
+                var set = new List<NormalInventoryItem>();
+                foreach (var invItem in items)
                 {
-                    set.Add(invItem);
-                    sum += quality;
+                    var quality = invItem.Item.GetComponent<Quality>().ItemQuality;
+
+                    if (sum + quality == 40 || sum + quality <= 35)
+                    {
+                        set.Add(invItem);
+                        sum += quality;
+                    }
+
+                    if (sum == 40)
+                    {
+                        break;
+                    }
                 }
 
                 if (sum == 40)
-                {
-                    break;
-                }
+                    return set.ToArray();
+
+                items.RemoveAt(0);
             }
 
-            if (sum == 40)
-                return set.ToArray();
             return null;
         }
 
