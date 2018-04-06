@@ -32,11 +32,10 @@ namespace QItemManager
 
             if (Settings.HighlightQuality != 0)
             {
-                if (stashPanel.IsVisible)
+                if (stashPanel.IsVisible && stashPanel.VisibleStash != null && stashPanel.VisibleStash.VisibleInventoryItems != null)
                 {
                     HighlightQItems<SkillGem>(stashPanel.VisibleStash);
                     HighlightQItems<Flask>(stashPanel.VisibleStash);
-
                 }
 
                 if (playerInventory.VisibleInventoryItems != null)
