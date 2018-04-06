@@ -32,13 +32,13 @@ namespace QItemManager
 
             if (Settings.HighlightQuality != 0)
             {
-                if (stashPanel.IsVisible && stashPanel.VisibleStash != null && stashPanel.VisibleStash.VisibleInventoryItems != null)
+                if (stashPanel.IsVisible)
                 {
                     HighlightQItems<SkillGem>(stashPanel.VisibleStash);
                     HighlightQItems<Flask>(stashPanel.VisibleStash);
                 }
 
-                if (playerInventory.VisibleInventoryItems != null)
+                if (playerInventory.InventoryUiElement.IsVisible)
                 {
                     HighlightQItems<SkillGem>(playerInventory);
                     HighlightQItems<Flask>(playerInventory);
@@ -54,16 +54,23 @@ namespace QItemManager
                     {
                         DropToInventory(set);
                     }
-                }
-
-                if (ingameState.UIRoot
-                    .Children[1]
-                    .Children[49]
-                    .Children[3].IsVisible)
+                } else
                 {
-                    
-                    SellItems<SkillGem>();
-                    SellItems<Flask>();
+                    var npcTradeWindow = ingameState.UIRoot;
+                    if (npcTradeWindow.Children.Count() > 1)
+                        npcTradeWindow = npcTradeWindow.Children[1];
+
+                    if (npcTradeWindow.Children.Count() > 49)
+                        npcTradeWindow = npcTradeWindow.Children[49];
+
+                    if (npcTradeWindow.Children.Count() > 3)
+                        npcTradeWindow = npcTradeWindow.Children[3];
+
+                    if (npcTradeWindow.IsVisible)
+                    {
+                        SellItems<SkillGem>();
+                        SellItems<Flask>();
+                    }
                 }
             }
         }
@@ -71,6 +78,9 @@ namespace QItemManager
         public void HighlightQItems<T>(Inventory inventory)
             where T: Component, new()
         {
+            if (inventory == null || inventory.VisibleInventoryItems == null || !inventory.VisibleInventoryItems.Any())
+                return;
+
             var items = from invItem in inventory.VisibleInventoryItems
                         let item = invItem.Item
                         where item.HasComponent<T>() && item.HasComponent<Quality>()
