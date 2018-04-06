@@ -7,7 +7,6 @@ using PoeHUD.Poe.Elements;
 using PoeHUD.Poe.RemoteMemoryObjects;
 using QItemManager.Utilities;
 using SharpDX;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -24,19 +23,23 @@ namespace QItemManager
 
         public override void Render()
         {
-            var stashPanel = GameController.Game.IngameState.ServerData.StashPanel;
-            var playerInventory = GameController.Game.IngameState.IngameUi.InventoryPanel[InventoryIndex.PlayerInventory];
+            if (!GameController.Game.IngameState.InGame) return;
+
+            var ingameState = GameController.Game.IngameState;
+
+            var stashPanel = ingameState.ServerData.StashPanel;
+            var playerInventory = ingameState.IngameUi.InventoryPanel[InventoryIndex.PlayerInventory];
 
             if (Settings.HighlightQuality != 0)
             {
-                if (stashPanel != null && stashPanel.IsVisible)
+                if (stashPanel.IsVisible)
                 {
                     HighlightQItems<SkillGem>(stashPanel.VisibleStash);
                     HighlightQItems<Flask>(stashPanel.VisibleStash);
 
                 }
 
-                if (playerInventory != null && playerInventory.InventoryUiElement.IsVisible)
+                if (playerInventory.VisibleInventoryItems != null)
                 {
                     HighlightQItems<SkillGem>(playerInventory);
                     HighlightQItems<Flask>(playerInventory);
@@ -52,7 +55,7 @@ namespace QItemManager
                     {
                         DropToInventory(set);
                     }
-                } else if (GameController.Game.IngameState.UIRoot
+                } else if (ingameState.UIRoot
                     .Children[1]
                     .Children[47]
                     .Children[3].IsVisible)
@@ -92,39 +95,32 @@ namespace QItemManager
         public NormalInventoryItem[] ScanInventory<T>(Inventory inventory)
             where T : Component, new()
         {
-            var items = new List<NormalInventoryItem>();
-
-            foreach (var invItem in inventory.VisibleInventoryItems)
-            {
-                var item = invItem.Item;
-
-                if (item == null)
-                {
-                    continue;
-                }
-
-                if (item.HasComponent<T>() && item.HasComponent<Quality>())
-                {
-                    items.Add(invItem);
-                }
-            }
+            var items = from invItem in inventory.VisibleInventoryItems
+                        let item = invItem.Item
+                        where item.HasComponent<T>()
+                            && item.HasComponent<Quality>()
+                            && !(Settings.IgnoreHighlighted && item.GetComponent<Quality>().ItemQuality < Settings.HighlightQuality)
+                        select invItem;
 
             var sum = 0;
-            var set = new List<NormalInventoryItem>();
-            foreach(var invItem in items)
-            {
-                var item = invItem.Item;
 
-                if (sum + item.GetComponent<Quality>().ItemQuality == 40 || sum + item.GetComponent<Quality>().ItemQuality <=35)
+            var set = new List<NormalInventoryItem>();
+            foreach (var invItem in items)
+            {
+                var quality = invItem.Item.GetComponent<Quality>().ItemQuality;
+
+                if (sum + quality == 40 || sum + quality <= 35)
                 {
                     set.Add(invItem);
-                    sum += item.GetComponent<Quality>().ItemQuality;
+                    sum += quality;
                 }
-                if(sum == 40)
+
+                if (sum == 40)
                 {
                     break;
                 }
             }
+
             if (sum == 40)
                 return set.ToArray();
             return null;

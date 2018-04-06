@@ -12,6 +12,7 @@ namespace QItemManager
             DropKey = Keys.F6;
             ExtraDelay = new RangeNode<int>(50, 0, 2000);
             HighlightQuality = new RangeNode<int>(15, 0, 20);
+            IgnoreHighlighted = true;
         }
 
         [Menu("Drop Key")]
@@ -22,5 +23,8 @@ namespace QItemManager
 
         [Menu("Quality for highlighting (0 to disable)")]
         public RangeNode<int> HighlightQuality { get; set; }
+
+        [Menu("Ignore highlighted items")]
+        public ToggleNode IgnoreHighlighted { get; set; }
     }
 }
