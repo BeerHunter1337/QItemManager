@@ -54,11 +54,14 @@ namespace QItemManager
                     {
                         DropToInventory(set);
                     }
-                } else if (ingameState.UIRoot
+                }
+
+                if (ingameState.UIRoot
                     .Children[1]
-                    .Children[47]
+                    .Children[49]
                     .Children[3].IsVisible)
                 {
+                    
                     SellItems<SkillGem>();
                     SellItems<Flask>();
                 }
